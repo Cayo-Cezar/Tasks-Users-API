@@ -1,10 +1,20 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TasksModule } from '../tasks/tasks.module'
+import { TasksModule } from '../tasks/tasks.module';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
-  imports: [TasksModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    TasksModule,
+    UsersModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
