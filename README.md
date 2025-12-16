@@ -19,7 +19,7 @@ Esta API permite:
 
 ## Clonar Repo
 git clone <url-do-repositorio>
-cd primeiro-app
+
 
 
 ## Instalar as dependências 
