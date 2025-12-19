@@ -10,14 +10,23 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PaginationDto = void 0;
+const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 class PaginationDto {
     offset = 0;
-    limit = 2;
+    limit = 10;
 }
 exports.PaginationDto = PaginationDto;
 __decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Quantidade de registros a pular (offset)',
+        example: 0,
+        minimum: 0,
+        maximum: 50,
+        default: 0,
+    }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsInt)(),
     (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.Min)(0),
@@ -25,6 +34,14 @@ __decorate([
     __metadata("design:type", Number)
 ], PaginationDto.prototype, "offset", void 0);
 __decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Quantidade de registros retornados (limit)',
+        example: 10,
+        minimum: 1,
+        maximum: 50,
+        default: 10,
+    }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsInt)(),
     (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.Min)(1),

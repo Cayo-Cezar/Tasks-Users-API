@@ -3,20 +3,51 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginatedResponseDto } from 'src/common/dto/paginated-response.dto';
+import { Task } from './entities/task.entity';
 
 @Injectable()
 export class TasksService {
   constructor(private prisma: PrismaService) { }
 
-  async findAll(paginationDto: PaginationDto = new PaginationDto()) {
+  async findAll(
+    paginationDto: PaginationDto = new PaginationDto(),
+  ): Promise<PaginatedResponseDto<Task>> {
     const { limit, offset } = paginationDto;
 
     try {
-      return await this.prisma.task.findMany({
-        take: limit,
-        skip: offset,
-        orderBy: { id: 'desc' },
-      });
+      const [tasks, total] = await this.prisma.$transaction([
+        this.prisma.task.findMany({
+          take: limit,
+          skip: offset,
+          orderBy: { id: 'desc' },
+        }),
+        this.prisma.task.count(),
+      ]);
+
+      const currentPage = limit > 0 ? Math.floor(offset / limit) + 1 : 1;
+      const lastPage = limit > 0 ? Math.ceil(total / limit) : 1;
+
+      const hasNext = offset + limit < total;
+      const hasPrevious = offset > 0;
+
+      const nextOffset = hasNext ? offset + limit : null;
+      const previousOffset = hasPrevious ? Math.max(offset - limit, 0) : null;
+
+      return {
+        data: tasks,
+        meta: {
+          total,
+          offset,
+          limit,
+          currentPage,
+          lastPage,
+          hasNext,
+          hasPrevious,
+          nextOffset,
+          previousOffset,
+        },
+      };
     } catch {
       throw new HttpException(
         'Erro ao listar tarefas.',
@@ -24,7 +55,6 @@ export class TasksService {
       );
     }
   }
-
 
   async findOne(id: number) {
     try {
@@ -84,7 +114,6 @@ export class TasksService {
     }
 
     try {
-
       const exists = await this.prisma.task.findUnique({ where: { id } });
       if (!exists) {
         throw new HttpException(
