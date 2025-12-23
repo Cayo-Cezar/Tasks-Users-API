@@ -22,6 +22,7 @@ export declare class UsersController {
             updatedAt: Date;
         }[];
         email: string;
+        passwordHash: string;
     }>;
     createUser(createUserDto: CreateUserDto): Promise<{
         name: string | null;

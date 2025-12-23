@@ -12,10 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const hashing_service_1 = require("../auth/hash/hashing.service");
 let UsersService = class UsersService {
     prisma;
-    constructor(prisma) {
+    hashingService;
+    constructor(prisma, hashingService) {
         this.prisma = prisma;
+        this.hashingService = hashingService;
     }
     async getAllUsers() {
         try {
@@ -31,7 +34,7 @@ let UsersService = class UsersService {
         try {
             const user = await this.prisma.user.findFirst({
                 where: { id },
-                select: { id: true, name: true, email: true, Task: true },
+                select: { id: true, name: true, email: true, Task: true, passwordHash: true },
             });
             if (!user) {
                 throw new common_1.HttpException('Usuário não encontrado.', common_1.HttpStatus.NOT_FOUND);
@@ -46,11 +49,12 @@ let UsersService = class UsersService {
     }
     async create(dto) {
         try {
+            const passwordHash = await this.hashingService.hash(dto.password);
             return await this.prisma.user.create({
                 data: {
                     name: dto.name,
                     email: dto.email,
-                    passwordHash: dto.password,
+                    passwordHash: passwordHash,
                 },
                 select: { id: true, name: true, email: true },
             });
@@ -64,12 +68,14 @@ let UsersService = class UsersService {
         if (dto.name === undefined && dto.password === undefined) {
             throw new common_1.HttpException('Nenhum campo enviado para atualização.', common_1.HttpStatus.BAD_REQUEST);
         }
+        const passwordHash = dto.password ? await this.hashingService.hash(dto.password) : undefined;
         try {
             return await this.prisma.user.update({
                 where: { id },
                 data: {
                     ...(dto.name !== undefined ? { name: dto.name } : {}),
-                    ...(dto.password !== undefined ? { passwordHash: dto.password } : {}),
+                    passwordHash: passwordHash,
+                    ...(dto.password !== undefined ? { passwordHash: passwordHash } : {}),
                 },
                 select: { id: true, name: true, email: true },
             });
@@ -91,6 +97,7 @@ let UsersService = class UsersService {
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        hashing_service_1.HashingServiceProtocol])
 ], UsersService);
 //# sourceMappingURL=users.service.js.map

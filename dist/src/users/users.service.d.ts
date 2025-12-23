@@ -1,9 +1,11 @@
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-ser.dto';
+import { HashingServiceProtocol } from 'src/auth/hash/hashing.service';
 export declare class UsersService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private readonly hashingService;
+    constructor(prisma: PrismaService, hashingService: HashingServiceProtocol);
     getAllUsers(): Promise<{
         name: string | null;
         id: number;
@@ -22,6 +24,7 @@ export declare class UsersService {
             updatedAt: Date;
         }[];
         email: string;
+        passwordHash: string;
     }>;
     create(dto: CreateUserDto): Promise<{
         name: string | null;

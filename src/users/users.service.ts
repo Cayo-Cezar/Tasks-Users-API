@@ -2,10 +2,12 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-ser.dto';
-
+import { HashingServiceProtocol } from 'src/auth/hash/hashing.service';
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService,
+    private readonly hashingService: HashingServiceProtocol
+  ) { }
 
   async getAllUsers() {
     try {
@@ -24,7 +26,7 @@ export class UsersService {
     try {
       const user = await this.prisma.user.findFirst({
         where: { id },
-        select: { id: true, name: true, email: true, Task: true },
+        select: { id: true, name: true, email: true, Task: true, passwordHash: true },
       });
 
       if (!user) {
@@ -47,11 +49,12 @@ export class UsersService {
 
   async create(dto: CreateUserDto) {
     try {
+      const passwordHash = await this.hashingService.hash(dto.password);
       return await this.prisma.user.create({
         data: {
           name: dto.name,
           email: dto.email,
-          passwordHash: dto.password,
+          passwordHash: passwordHash,
         },
         select: { id: true, name: true, email: true },
       });
@@ -72,13 +75,14 @@ export class UsersService {
         HttpStatus.BAD_REQUEST,
       );
     }
-
+    const passwordHash = dto.password ? await this.hashingService.hash(dto.password) : undefined;
     try {
       return await this.prisma.user.update({
         where: { id },
         data: {
           ...(dto.name !== undefined ? { name: dto.name } : {}),
-          ...(dto.password !== undefined ? { passwordHash: dto.password } : {}),
+          passwordHash: passwordHash,
+          ...(dto.password !== undefined ? { passwordHash: passwordHash } : {}),
         },
         select: { id: true, name: true, email: true },
       });
