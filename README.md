@@ -15,40 +15,6 @@ Esta API permite:
 - Validar dados de entrada
 - Testar endpoints via Swagger
 
----
-
-## Clonar Repo
-git clone <url-do-repositorio>
-
-
-
-## Instalar as dependências 
- npm install
-
-## Criar o arquivo .env
-DATABASE_URL="postgresql://postgres:senha@localhost:5432/minha_db?schema=public"
-
-## Subir o PostgreSQL com Docker
-docker compose up -d
-
-
-## Rodar migrations e gerar o Prisma Client
-npx prisma migrate dev
-npx prisma generate
-
-
-## Rodar a aplicação
-npm run start:dev
-
-
-## Acessar a aplicação
-
-API: http://localhost:3000
-
-Swagger: http://localhost:3000/docs
-
-
-
 
 ## 🧩 Tecnologias
 
