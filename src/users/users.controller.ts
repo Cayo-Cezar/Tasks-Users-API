@@ -7,6 +7,8 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -14,9 +16,13 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import type { Request } from 'express';
+
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-ser.dto';
+import { AuthTokenGuard } from 'src/auth/guard/auth-token.guard';
+import { REQUEST_TOKEN_PAYLOAD_KEY } from 'src/auth/common/auth.constants';
 
 @ApiTags('Users')
 @Controller('users')
@@ -49,8 +55,8 @@ export class UsersController {
       exemploPadrao: {
         summary: 'Exemplo de criação de usuário',
         value: {
-          name: 'Caio Cezar',
-          email: 'caio@email.com',
+          name: 'Nome Sobrenome',
+          email: 'nome@email.com',
           password: 'minhasenha123',
         },
       },
@@ -60,9 +66,11 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
+  @UseGuards(AuthTokenGuard)
   @Patch(':id')
   @ApiOperation({
-    summary: 'Atualizar usuário (name e/ou password). Email não pode ser alterado.',
+    summary:
+      'Atualizar usuário (name e/ou password). Email não pode ser alterado.',
   })
   @ApiParam({
     name: 'id',
@@ -97,7 +105,13 @@ export class UsersController {
   updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
+    @Req() req: Request,
   ) {
+    console.log(
+      REQUEST_TOKEN_PAYLOAD_KEY,
+      (req as any)[REQUEST_TOKEN_PAYLOAD_KEY],
+    );
+
     return this.usersService.update(id, updateUserDto);
   }
 

@@ -18,6 +18,8 @@ const swagger_1 = require("@nestjs/swagger");
 const users_service_1 = require("./users.service");
 const create_user_dto_1 = require("./dto/create-user.dto");
 const update_ser_dto_1 = require("./dto/update-ser.dto");
+const auth_token_guard_1 = require("../auth/guard/auth-token.guard");
+const auth_constants_1 = require("../auth/common/auth.constants");
 let UsersController = class UsersController {
     usersService;
     constructor(usersService) {
@@ -32,7 +34,8 @@ let UsersController = class UsersController {
     createUser(createUserDto) {
         return this.usersService.create(createUserDto);
     }
-    updateUser(id, updateUserDto) {
+    updateUser(id, updateUserDto, req) {
+        console.log(auth_constants_1.REQUEST_TOKEN_PAYLOAD_KEY, req[auth_constants_1.REQUEST_TOKEN_PAYLOAD_KEY]);
         return this.usersService.update(id, updateUserDto);
     }
     delete(id) {
@@ -70,8 +73,8 @@ __decorate([
             exemploPadrao: {
                 summary: 'Exemplo de criação de usuário',
                 value: {
-                    name: 'Caio Cezar',
-                    email: 'caio@email.com',
+                    name: 'Nome Sobrenome',
+                    email: 'nome@email.com',
                     password: 'minhasenha123',
                 },
             },
@@ -83,6 +86,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "createUser", null);
 __decorate([
+    (0, common_1.UseGuards)(auth_token_guard_1.AuthTokenGuard),
     (0, common_1.Patch)(':id'),
     (0, swagger_1.ApiOperation)({
         summary: 'Atualizar usuário (name e/ou password). Email não pode ser alterado.',
@@ -119,8 +123,9 @@ __decorate([
     }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, update_ser_dto_1.UpdateUserDto]),
+    __metadata("design:paramtypes", [Number, update_ser_dto_1.UpdateUserDto, Object]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "updateUser", null);
 __decorate([
