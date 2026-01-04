@@ -23,6 +23,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-ser.dto';
 import { AuthTokenGuard } from 'src/auth/guard/auth-token.guard';
 import { REQUEST_TOKEN_PAYLOAD_KEY } from 'src/auth/common/auth.constants';
+import { tokenPayloadParm } from 'src/auth/parm/token-payload.parm';
+import { PayLoadTokenDto } from 'src/auth/dto/payload-token.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -105,14 +107,11 @@ export class UsersController {
   updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
-    @Req() req: Request,
+    @tokenPayloadParm() tokenPayload: PayLoadTokenDto,
   ) {
-    console.log(
-      REQUEST_TOKEN_PAYLOAD_KEY,
-      (req as any)[REQUEST_TOKEN_PAYLOAD_KEY],
-    );
 
-    return this.usersService.update(id, updateUserDto);
+
+    return this.usersService.update(id, updateUserDto, tokenPayload);
   }
 
   @Delete(':id')
@@ -123,7 +122,8 @@ export class UsersController {
     example: 1,
     description: 'ID do usuário',
   })
-  delete(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.delete(id);
+  @UseGuards(AuthTokenGuard)
+  delete(@Param('id', ParseIntPipe) id: number, @tokenPayloadParm() tokenPayload: PayLoadTokenDto) {
+    return this.usersService.delete(id, tokenPayload);
   }
 }

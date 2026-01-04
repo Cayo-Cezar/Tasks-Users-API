@@ -2,6 +2,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-ser.dto';
 import { HashingServiceProtocol } from 'src/auth/hash/hashing.service';
+import { PayLoadTokenDto } from 'src/auth/dto/payload-token.dto';
 export declare class UsersService {
     private prisma;
     private readonly hashingService;
@@ -31,12 +32,12 @@ export declare class UsersService {
         id: number;
         email: string;
     }>;
-    update(id: number, dto: UpdateUserDto): Promise<{
+    update(id: number, dto: UpdateUserDto, tokenPayload: PayLoadTokenDto): Promise<{
         name: string | null;
         id: number;
         email: string;
     }>;
-    delete(id: number): Promise<{
+    delete(id: number, tokenPayload: PayLoadTokenDto): Promise<{
         message: string;
     }>;
 }

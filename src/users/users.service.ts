@@ -3,6 +3,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-ser.dto';
 import { HashingServiceProtocol } from 'src/auth/hash/hashing.service';
+import { PayLoadTokenDto } from 'src/auth/dto/payload-token.dto';
+
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService,
@@ -68,22 +70,39 @@ export class UsersService {
   }
 
 
-  async update(id: number, dto: UpdateUserDto) {
+  async update(id: number, dto: UpdateUserDto, tokenPayload: PayLoadTokenDto) {
     if (dto.name === undefined && dto.password === undefined) {
       throw new HttpException(
         'Nenhum campo enviado para atualização.',
         HttpStatus.BAD_REQUEST,
       );
     }
-    const passwordHash = dto.password ? await this.hashingService.hash(dto.password) : undefined;
+
+    // Permissão: só o próprio usuário (sub) pode atualizar seu registro
+    if (tokenPayload.sub !== id) {
+      throw new HttpException(
+        'Você não tem permissão para atualizar este usuário.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    // (Opcional, mas mantém seu padrão) garante 404 se não existir
+    await this.findOne(id);
+
     try {
+      const data: any = {};
+
+      if (dto.name !== undefined) {
+        data.name = dto.name;
+      }
+
+      if (dto.password !== undefined) {
+        data.passwordHash = await this.hashingService.hash(dto.password);
+      }
+
       return await this.prisma.user.update({
         where: { id },
-        data: {
-          ...(dto.name !== undefined ? { name: dto.name } : {}),
-          passwordHash: passwordHash,
-          ...(dto.password !== undefined ? { passwordHash: passwordHash } : {}),
-        },
+        data,
         select: { id: true, name: true, email: true },
       });
     } catch {
@@ -94,7 +113,15 @@ export class UsersService {
     }
   }
 
-  async delete(id: number) {
+
+  async delete(id: number, tokenPayload: PayLoadTokenDto) {
+    if (tokenPayload.sub !== id) {
+      throw new HttpException(
+        'Você não tem permissão para remover este usuário.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     try {
       await this.prisma.user.delete({ where: { id } });
       return { message: 'Usuário removido com sucesso.' };

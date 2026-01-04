@@ -19,7 +19,8 @@ const users_service_1 = require("./users.service");
 const create_user_dto_1 = require("./dto/create-user.dto");
 const update_ser_dto_1 = require("./dto/update-ser.dto");
 const auth_token_guard_1 = require("../auth/guard/auth-token.guard");
-const auth_constants_1 = require("../auth/common/auth.constants");
+const token_payload_parm_1 = require("../auth/parm/token-payload.parm");
+const payload_token_dto_1 = require("../auth/dto/payload-token.dto");
 let UsersController = class UsersController {
     usersService;
     constructor(usersService) {
@@ -34,12 +35,11 @@ let UsersController = class UsersController {
     createUser(createUserDto) {
         return this.usersService.create(createUserDto);
     }
-    updateUser(id, updateUserDto, req) {
-        console.log(auth_constants_1.REQUEST_TOKEN_PAYLOAD_KEY, req[auth_constants_1.REQUEST_TOKEN_PAYLOAD_KEY]);
-        return this.usersService.update(id, updateUserDto);
+    updateUser(id, updateUserDto, tokenPayload) {
+        return this.usersService.update(id, updateUserDto, tokenPayload);
     }
-    delete(id) {
-        return this.usersService.delete(id);
+    delete(id, tokenPayload) {
+        return this.usersService.delete(id, tokenPayload);
     }
 };
 exports.UsersController = UsersController;
@@ -123,9 +123,10 @@ __decorate([
     }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
-    __param(2, (0, common_1.Req)()),
+    __param(2, (0, token_payload_parm_1.tokenPayloadParm)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, update_ser_dto_1.UpdateUserDto, Object]),
+    __metadata("design:paramtypes", [Number, update_ser_dto_1.UpdateUserDto,
+        payload_token_dto_1.PayLoadTokenDto]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "updateUser", null);
 __decorate([
@@ -137,9 +138,11 @@ __decorate([
         example: 1,
         description: 'ID do usuário',
     }),
+    (0, common_1.UseGuards)(auth_token_guard_1.AuthTokenGuard),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, token_payload_parm_1.tokenPayloadParm)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Number, payload_token_dto_1.PayLoadTokenDto]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "delete", null);
 exports.UsersController = UsersController = __decorate([

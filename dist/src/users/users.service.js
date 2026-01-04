@@ -64,19 +64,25 @@ let UsersService = class UsersService {
             throw new common_1.HttpException('Erro ao criar usuário. Verifique os dados enviados.', common_1.HttpStatus.BAD_REQUEST);
         }
     }
-    async update(id, dto) {
+    async update(id, dto, tokenPayload) {
         if (dto.name === undefined && dto.password === undefined) {
             throw new common_1.HttpException('Nenhum campo enviado para atualização.', common_1.HttpStatus.BAD_REQUEST);
         }
-        const passwordHash = dto.password ? await this.hashingService.hash(dto.password) : undefined;
+        if (tokenPayload.sub !== id) {
+            throw new common_1.HttpException('Você não tem permissão para atualizar este usuário.', common_1.HttpStatus.FORBIDDEN);
+        }
+        await this.findOne(id);
         try {
+            const data = {};
+            if (dto.name !== undefined) {
+                data.name = dto.name;
+            }
+            if (dto.password !== undefined) {
+                data.passwordHash = await this.hashingService.hash(dto.password);
+            }
             return await this.prisma.user.update({
                 where: { id },
-                data: {
-                    ...(dto.name !== undefined ? { name: dto.name } : {}),
-                    passwordHash: passwordHash,
-                    ...(dto.password !== undefined ? { passwordHash: passwordHash } : {}),
-                },
+                data,
                 select: { id: true, name: true, email: true },
             });
         }
@@ -84,7 +90,10 @@ let UsersService = class UsersService {
             throw new common_1.HttpException('Erro ao atualizar usuário. Verifique se o usuário existe.', common_1.HttpStatus.BAD_REQUEST);
         }
     }
-    async delete(id) {
+    async delete(id, tokenPayload) {
+        if (tokenPayload.sub !== id) {
+            throw new common_1.HttpException('Você não tem permissão para remover este usuário.', common_1.HttpStatus.FORBIDDEN);
+        }
         try {
             await this.prisma.user.delete({ where: { id } });
             return { message: 'Usuário removido com sucesso.' };
