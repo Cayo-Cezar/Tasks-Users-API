@@ -1,22 +1,23 @@
 # 📌 Tasks & Users API — NestJS + Prisma + PostgreSQL
 
-API REST desenvolvida com **NestJS**, **Prisma ORM** e **PostgreSQL**, com documentação interativa via **Swagger**.  
-O projeto implementa um sistema de **Usuários** e **Tarefas**, com relacionamento entre eles, validações, paginação e ambiente pronto para desenvolvimento local com Docker.
+REST API developed with **NestJS**, **Prisma ORM**, and **PostgreSQL**, featuring interactive documentation via **Swagger**.  
+The project implements a **Users** and **Tasks** system, with relationships between them, validations, pagination, and a Docker-ready environment for local development.
 
 ---
 
-## 🧠 Visão Geral
+## 🧠 Overview
 
-Esta API permite:
-- Criar, listar, atualizar e remover **Usuários**
-- Criar, listar, atualizar e remover **Tarefas**
-- Associar tarefas a usuários
-- Paginar resultados
-- Validar dados de entrada
-- Testar endpoints via Swagger
+This API allows you to:
+- Create, list, update, and delete **Users**
+- Create, list, update, and delete **Tasks**
+- Associate tasks with users
+- Paginate results
+- Validate input data
+- Test endpoints via Swagger
 
+---
 
-## 🧩 Tecnologias
+## 🧩 Technologies
 
 - **Node.js**
 - **NestJS**
@@ -28,15 +29,4 @@ Esta API permite:
 
 ---
 
-## 🗂 Arquitetura (conceitual)
 
-```text
-┌──────────┐        1 ──── N        ┌──────────┐
-│  User    │──────────────────────▶│  Task    │
-├──────────┤                         ├──────────┤
-│ id       │                         │ id       │
-│ email*   │                         │ name     │
-│ name     │                         │ desc     │
-│ password │                         │ completed│
-└──────────┘                         │ userId   │
-                                     └──────────┘
