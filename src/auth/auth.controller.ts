@@ -1,5 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+
 import { SignInDto } from './dto/signin.dto';
 import { AuthService } from './auth.service';
 
@@ -9,15 +10,15 @@ export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
   @Post()
-  @ApiOperation({ summary: 'Autenticar usuário (login)' })
+  @ApiOperation({ summary: 'Authenticate user (login)' })
   @ApiBody({
     type: SignInDto,
     examples: {
-      exemploPadrao: {
-        summary: 'Exemplo de login',
+      defaultExample: {
+        summary: 'Login example',
         value: {
-          email: 'usuario@example.com',
-          password: 'minhasenha123',
+          email: 'user@example.com',
+          password: 'mypassword123',
         },
       },
     },

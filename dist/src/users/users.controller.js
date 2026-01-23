@@ -17,7 +17,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const users_service_1 = require("./users.service");
 const create_user_dto_1 = require("./dto/create-user.dto");
-const update_ser_dto_1 = require("./dto/update-ser.dto");
+const update_user_dto_1 = require("./dto/update-user.dto");
 const auth_token_guard_1 = require("../auth/guard/auth-token.guard");
 const token_payload_parm_1 = require("../auth/parm/token-payload.parm");
 const payload_token_dto_1 = require("../auth/dto/payload-token.dto");
@@ -45,19 +45,19 @@ let UsersController = class UsersController {
 exports.UsersController = UsersController;
 __decorate([
     (0, common_1.Get)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Listar usuários' }),
+    (0, swagger_1.ApiOperation)({ summary: 'List users' }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "getAllUsers", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Buscar usuário por ID' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Get user by ID' }),
     (0, swagger_1.ApiParam)({
         name: 'id',
         type: Number,
         example: 1,
-        description: 'ID do usuário',
+        description: 'User ID',
     }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
@@ -66,19 +66,23 @@ __decorate([
 ], UsersController.prototype, "findOneUser", null);
 __decorate([
     (0, common_1.Post)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Criar usuário' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Create user' }),
     (0, swagger_1.ApiBody)({
         type: create_user_dto_1.CreateUserDto,
         examples: {
-            exemploPadrao: {
-                summary: 'Exemplo de criação de usuário',
+            defaultExample: {
+                summary: 'User creation example',
                 value: {
-                    name: 'Nome Sobrenome',
-                    email: 'nome@email.com',
-                    password: 'minhasenha123',
+                    name: 'Full Name',
+                    email: 'user@email.com',
+                    password: 'mypassword123',
                 },
             },
         },
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 201,
+        description: 'User created successfully',
     }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -87,37 +91,32 @@ __decorate([
 ], UsersController.prototype, "createUser", null);
 __decorate([
     (0, common_1.UseGuards)(auth_token_guard_1.AuthTokenGuard),
+    (0, swagger_1.ApiBearerAuth)('access-token'),
+    (0, swagger_1.ApiUnauthorizedResponse)({ description: 'Invalid or missing token' }),
     (0, common_1.Patch)(':id'),
     (0, swagger_1.ApiOperation)({
-        summary: 'Atualizar usuário (name e/ou password). Email não pode ser alterado.',
+        summary: 'Update user (name and/or password). Email cannot be changed.',
     }),
     (0, swagger_1.ApiParam)({
         name: 'id',
         type: Number,
         example: 1,
-        description: 'ID do usuário',
+        description: 'User ID',
     }),
     (0, swagger_1.ApiBody)({
-        type: update_ser_dto_1.UpdateUserDto,
+        type: update_user_dto_1.UpdateUserDto,
         examples: {
-            atualizarNome: {
-                summary: 'Atualizar apenas nome',
-                value: {
-                    name: 'Novo Nome',
-                },
+            updateName: {
+                summary: 'Update name only',
+                value: { name: 'New Name' },
             },
-            atualizarSenha: {
-                summary: 'Atualizar apenas senha',
-                value: {
-                    password: 'novasenha123',
-                },
+            updatePassword: {
+                summary: 'Update password only',
+                value: { password: 'newpassword123' },
             },
-            atualizarAmbos: {
-                summary: 'Atualizar nome e senha',
-                value: {
-                    name: 'Novo Nome',
-                    password: 'novasenha123',
-                },
+            updateBoth: {
+                summary: 'Update name and password',
+                value: { name: 'New Name', password: 'newpassword123' },
             },
         },
     }),
@@ -125,20 +124,26 @@ __decorate([
     __param(1, (0, common_1.Body)()),
     __param(2, (0, token_payload_parm_1.tokenPayloadParm)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, update_ser_dto_1.UpdateUserDto,
+    __metadata("design:paramtypes", [Number, update_user_dto_1.UpdateUserDto,
         payload_token_dto_1.PayLoadTokenDto]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "updateUser", null);
 __decorate([
+    (0, common_1.UseGuards)(auth_token_guard_1.AuthTokenGuard),
+    (0, swagger_1.ApiBearerAuth)('access-token'),
+    (0, swagger_1.ApiUnauthorizedResponse)({ description: 'Invalid or missing token' }),
     (0, common_1.Delete)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Remover usuário' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Delete user' }),
     (0, swagger_1.ApiParam)({
         name: 'id',
         type: Number,
         example: 1,
-        description: 'ID do usuário',
+        description: 'User ID',
     }),
-    (0, common_1.UseGuards)(auth_token_guard_1.AuthTokenGuard),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'User deleted successfully',
+    }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, token_payload_parm_1.tokenPayloadParm)()),
     __metadata("design:type", Function),

@@ -1,14 +1,16 @@
 import {
   CanActivate,
   ExecutionContext,
+  Inject,
   Injectable,
   UnauthorizedException,
-  Inject,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Request } from 'express';
 import type { ConfigType } from '@nestjs/config';
+import { Request } from 'express';
+
 import jwtConfig from '../config/jwt.config';
+import { REQUEST_TOKEN_PAYLOAD_KEY } from '../common/auth.constants';
 
 @Injectable()
 export class AuthTokenGuard implements CanActivate {
@@ -34,12 +36,14 @@ export class AuthTokenGuard implements CanActivate {
         issuer: this.jwtConfiguration.issuer,
       });
 
-      // opcional: anexar o payload no request para uso posterior
+      // GUARDA EM tokenPayload
+      (request as any)[REQUEST_TOKEN_PAYLOAD_KEY] = payload;
+
+      // (Opcional) também coloca em request.user
       (request as any).user = payload;
 
       return true;
-    } catch (error) {
-      // token inválido, expirado, etc.
+    } catch {
       throw new UnauthorizedException('Invalid or expired token');
     }
   }
@@ -47,15 +51,11 @@ export class AuthTokenGuard implements CanActivate {
   private extractTokenFromHeader(request: Request): string | null {
     const authorization = request.headers?.authorization;
 
-    if (!authorization || typeof authorization !== 'string') {
-      return null;
-    }
+    if (!authorization || typeof authorization !== 'string') return null;
 
     const [type, token] = authorization.split(' ');
 
-    if (type !== 'Bearer' || !token) {
-      return null;
-    }
+    if (type !== 'Bearer' || !token) return null;
 
     return token;
   }

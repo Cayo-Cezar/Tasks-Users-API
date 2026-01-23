@@ -6,18 +6,25 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Validação global (recomendado)
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,        // remove campos extras
+      whitelist: true,
     }),
   );
 
-  // Configuração do Swagger
   const config = new DocumentBuilder()
     .setTitle('Tasks & Users API')
     .setDescription('Documentação e testes da API')
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'Informe o token JWT no formato: Bearer <token>',
+      },
+      'access-token', // nome do esquema
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

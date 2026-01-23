@@ -18,7 +18,6 @@ let PrismaService = class PrismaService extends client_1.PrismaClient {
     constructor() {
         const pool = new pg_1.Pool({ connectionString: process.env.DATABASE_URL });
         super({ adapter: new adapter_pg_1.PrismaPg(pool) });
-        console.log('DATABASE_URL =>', process.env.DATABASE_URL);
     }
 };
 exports.PrismaService = PrismaService;

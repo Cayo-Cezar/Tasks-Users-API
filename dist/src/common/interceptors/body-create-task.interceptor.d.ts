@@ -1,5 +1,5 @@
-import { NestInterceptor } from "@nestjs/common";
-import { Observable } from "rxjs";
+import { CallHandler, ExecutionContext, NestInterceptor } from '@nestjs/common';
+import { Observable } from 'rxjs';
 export declare class BodyCreateTaskInterceptor implements NestInterceptor {
-    intercept(context: any, next: any): Observable<any> | Promise<Observable<any>>;
+    intercept(context: ExecutionContext, next: CallHandler): Observable<any>;
 }

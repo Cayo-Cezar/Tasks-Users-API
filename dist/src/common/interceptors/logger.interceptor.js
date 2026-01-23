@@ -16,9 +16,7 @@ let LoggerInterceptor = class LoggerInterceptor {
         const url = request.url;
         const now = Date.now();
         console.log(`[REQUEST] ${method} ${url} - ${new Date().toISOString()}`);
-        return next
-            .handle()
-            .pipe((0, operators_1.tap)(() => console.log(`[RESPONSE] ${method} ${url} - ${new Date().toISOString()} - ${Date.now() - now}ms`)));
+        return next.handle().pipe((0, operators_1.tap)(() => console.log(`[RESPONSE] ${method} ${url} - ${new Date().toISOString()} - ${Date.now() - now}ms`)));
     }
 };
 exports.LoggerInterceptor = LoggerInterceptor;

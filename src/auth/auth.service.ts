@@ -1,15 +1,11 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SignInDto } from './dto/signin.dto';
 import { HashingServiceProtocol } from './hash/hashing.service';
 import jwtConfig from './config/jwt.config';
-import { JwtService } from '@nestjs/jwt';
-
-type JwtPayload = {
-  sub: number;
-  email: string;
-};
 
 @Injectable()
 export class AuthService {
@@ -34,7 +30,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new Error('Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const isPasswordValid = await this.hashingService.compare(
@@ -43,10 +39,10 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
-      throw new Error('Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    const token = await (this.jwtService as any).signAsync(
+    const token = this.jwtService.sign(
       { sub: user.id, email: user.email },
       {
         secret: this.jwtConfiguration.secret,
@@ -54,7 +50,9 @@ export class AuthService {
         issuer: this.jwtConfiguration.issuer,
         expiresIn: this.jwtConfiguration.jwtTtl,
       },
+
     );
+
 
     return {
       id: user.id,

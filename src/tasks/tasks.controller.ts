@@ -11,119 +11,116 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
   ApiResponse,
   ApiTags,
-  ApiOkResponse,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { AuthAdminGuard } from 'src/common/guards/admin.guards';
 import { Task } from './entities/task.entity';
+import { AuthTokenGuard } from 'src/auth/guard/auth-token.guard';
+import { tokenPayloadParm } from 'src/auth/parm/token-payload.parm';
+import { PayLoadTokenDto } from 'src/auth/dto/payload-token.dto';
 
 @ApiTags('Tasks')
 @Controller('tasks')
-//@UseGuards(AuthAdminGuard)
 export class TasksController {
   constructor(private readonly taskService: TasksService) { }
 
   @Get()
-  @ApiOperation({ summary: 'Listar tarefas (com paginação)' })
+  @ApiOperation({ summary: 'List tasks (with pagination)' })
   @ApiQuery({
     name: 'offset',
     required: false,
     type: Number,
     example: 0,
-    description: 'Quantidade de registros a pular (offset)',
+    description: 'Number of records to skip (offset)',
   })
   @ApiQuery({
     name: 'limit',
     required: false,
     type: Number,
     example: 10,
-    description: 'Quantidade de registros retornados (limit)',
+    description: 'Number of records to return (limit)',
   })
-  @ApiOkResponse({
-    description: 'Lista paginada de tarefas',
-    schema: {
-      example: {
-        data: [
-          {
-            id: 1,
-            name: 'Minha tarefa',
-            description: 'Descrição da tarefa',
-            completed: false,
-            createdAt: '2025-12-18T23:00:00.000Z',
-          },
-        ],
-        meta: {
-          total: 20,
-          offset: 0,
-          limit: 10,
-          currentPage: 1,
-          lastPage: 2,
-          hasNext: true,
-          hasPrevious: false,
-          nextOffset: 10,
-          previousOffset: null,
-        },
-      },
-    },
-  })
+  @ApiOkResponse({ description: 'Paginated list of tasks' })
   findAllTasks(@Query() paginationDto: PaginationDto) {
     return this.taskService.findAll(paginationDto);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Buscar tarefa por ID' })
+  @ApiOperation({ summary: 'Get task by ID' })
   @ApiParam({ name: 'id', type: Number, example: 1 })
-  @ApiOkResponse({ description: 'Tarefa encontrada', type: Task })
+  @ApiOkResponse({ description: 'Task found', type: Task })
   findOneTask(@Param('id', ParseIntPipe) id: number) {
     return this.taskService.findOne(id);
   }
 
+  @UseGuards(AuthTokenGuard)
+  @ApiBearerAuth('access-token')
+  @ApiUnauthorizedResponse({ description: 'Invalid or missing token' })
   @Post()
-  @ApiOperation({ summary: 'Criar tarefa' })
+  @ApiOperation({ summary: 'Create task' })
   @ApiBody({ type: CreateTaskDto })
   @ApiResponse({
     status: 201,
-    description: 'Tarefa criada com sucesso',
+    description: 'Task created successfully',
     type: Task,
   })
-  createTask(@Body() createTaskDto: CreateTaskDto) {
-    return this.taskService.create(createTaskDto);
+  createTask(
+    @Body() createTaskDto: CreateTaskDto,
+    @tokenPayloadParm() tokenPayload: PayLoadTokenDto,
+  ) {
+    if (!tokenPayload) {
+      // isso vira um 500/400 mais claro, mas o ideal é nunca acontecer após a correção acima
+      throw new Error('Token payload not found in request. Guard/decorator mismatch.');
+    }
+    return this.taskService.create(createTaskDto, tokenPayload);
   }
 
+
+  @UseGuards(AuthTokenGuard)
+  @ApiBearerAuth('access-token')
+  @ApiUnauthorizedResponse({ description: 'Invalid or missing token' })
   @Patch(':id')
-  @ApiOperation({ summary: 'Atualizar tarefa (PATCH parcial)' })
+  @ApiOperation({ summary: 'Update task (partial PATCH)' })
   @ApiParam({ name: 'id', type: Number, example: 1 })
   @ApiBody({ type: UpdateTaskDto })
   @ApiOkResponse({
-    description: 'Tarefa atualizada com sucesso',
+    description: 'Task updated successfully',
     type: Task,
   })
   updateTask(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateTaskDto: UpdateTaskDto,
+    @tokenPayloadParm() tokenPayload: PayLoadTokenDto,
   ) {
-    return this.taskService.update(id, updateTaskDto);
+    return this.taskService.update(id, updateTaskDto, tokenPayload);
   }
 
+  @UseGuards(AuthTokenGuard)
+  @ApiBearerAuth('access-token')
+  @ApiUnauthorizedResponse({ description: 'Invalid or missing token' })
   @Delete(':id')
-  @ApiOperation({ summary: 'Remover tarefa' })
+  @ApiOperation({ summary: 'Delete task' })
   @ApiParam({ name: 'id', type: Number, example: 1 })
   @ApiOkResponse({
-    description: 'Tarefa removida com sucesso',
-    schema: {
-      example: { message: 'Tarefa removida com sucesso.' },
-    },
+    description: 'Task deleted successfully',
+    schema: { example: { message: 'Task deleted successfully.' } },
   })
-  deleteTask(@Param('id', ParseIntPipe) id: number) {
-    return this.taskService.delete(id);
+  deleteTask(
+    @Param('id', ParseIntPipe) id: number,
+    @tokenPayloadParm() tokenPayload: PayLoadTokenDto,
+  ) {
+    return this.taskService.delete(id, tokenPayload);
   }
 }

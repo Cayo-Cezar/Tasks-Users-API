@@ -8,21 +8,22 @@ import {
   Patch,
   Post,
   UseGuards,
-  Req,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiResponse,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import type { Request } from 'express';
 
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-ser.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+
 import { AuthTokenGuard } from 'src/auth/guard/auth-token.guard';
-import { REQUEST_TOKEN_PAYLOAD_KEY } from 'src/auth/common/auth.constants';
 import { tokenPayloadParm } from 'src/auth/parm/token-payload.parm';
 import { PayLoadTokenDto } from 'src/auth/dto/payload-token.dto';
 
@@ -32,75 +33,73 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
   @Get()
-  @ApiOperation({ summary: 'Listar usuários' })
+  @ApiOperation({ summary: 'List users' })
   getAllUsers() {
     return this.usersService.getAllUsers();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Buscar usuário por ID' })
+  @ApiOperation({ summary: 'Get user by ID' })
   @ApiParam({
     name: 'id',
     type: Number,
     example: 1,
-    description: 'ID do usuário',
+    description: 'User ID',
   })
   findOneUser(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.findOne(id);
   }
 
   @Post()
-  @ApiOperation({ summary: 'Criar usuário' })
+  @ApiOperation({ summary: 'Create user' })
   @ApiBody({
     type: CreateUserDto,
     examples: {
-      exemploPadrao: {
-        summary: 'Exemplo de criação de usuário',
+      defaultExample: {
+        summary: 'User creation example',
         value: {
-          name: 'Nome Sobrenome',
-          email: 'nome@email.com',
-          password: 'minhasenha123',
+          name: 'Full Name',
+          email: 'user@email.com',
+          password: 'mypassword123',
         },
       },
     },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'User created successfully',
   })
   createUser(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
   @UseGuards(AuthTokenGuard)
+  @ApiBearerAuth('access-token')
+  @ApiUnauthorizedResponse({ description: 'Invalid or missing token' })
   @Patch(':id')
   @ApiOperation({
-    summary:
-      'Atualizar usuário (name e/ou password). Email não pode ser alterado.',
+    summary: 'Update user (name and/or password). Email cannot be changed.',
   })
   @ApiParam({
     name: 'id',
     type: Number,
     example: 1,
-    description: 'ID do usuário',
+    description: 'User ID',
   })
   @ApiBody({
     type: UpdateUserDto,
     examples: {
-      atualizarNome: {
-        summary: 'Atualizar apenas nome',
-        value: {
-          name: 'Novo Nome',
-        },
+      updateName: {
+        summary: 'Update name only',
+        value: { name: 'New Name' },
       },
-      atualizarSenha: {
-        summary: 'Atualizar apenas senha',
-        value: {
-          password: 'novasenha123',
-        },
+      updatePassword: {
+        summary: 'Update password only',
+        value: { password: 'newpassword123' },
       },
-      atualizarAmbos: {
-        summary: 'Atualizar nome e senha',
-        value: {
-          name: 'Novo Nome',
-          password: 'novasenha123',
-        },
+      updateBoth: {
+        summary: 'Update name and password',
+        value: { name: 'New Name', password: 'newpassword123' },
       },
     },
   })
@@ -109,21 +108,28 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
     @tokenPayloadParm() tokenPayload: PayLoadTokenDto,
   ) {
-
-
     return this.usersService.update(id, updateUserDto, tokenPayload);
   }
 
+  @UseGuards(AuthTokenGuard)
+  @ApiBearerAuth('access-token')
+  @ApiUnauthorizedResponse({ description: 'Invalid or missing token' })
   @Delete(':id')
-  @ApiOperation({ summary: 'Remover usuário' })
+  @ApiOperation({ summary: 'Delete user' })
   @ApiParam({
     name: 'id',
     type: Number,
     example: 1,
-    description: 'ID do usuário',
+    description: 'User ID',
   })
-  @UseGuards(AuthTokenGuard)
-  delete(@Param('id', ParseIntPipe) id: number, @tokenPayloadParm() tokenPayload: PayLoadTokenDto) {
+  @ApiResponse({
+    status: 200,
+    description: 'User deleted successfully',
+  })
+  delete(
+    @Param('id', ParseIntPipe) id: number,
+    @tokenPayloadParm() tokenPayload: PayLoadTokenDto,
+  ) {
     return this.usersService.delete(id, tokenPayload);
   }
 }

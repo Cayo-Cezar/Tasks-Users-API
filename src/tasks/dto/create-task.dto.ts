@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString, MinLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateTaskDto {
   @ApiProperty({ example: 'Minha tarefa' })
@@ -8,14 +8,9 @@ export class CreateTaskDto {
   @IsNotEmpty()
   readonly name: string;
 
-  @ApiProperty({ example: 'Descrição da tarefa' })
+  @ApiPropertyOptional({ example: 'Descrição da tarefa', nullable: true })
+  @IsOptional()
   @IsString()
   @MinLength(5)
-  @IsNotEmpty()
-  readonly description: string;
-
-  @ApiProperty({ example: 1 })
-  @IsNumber()
-  @IsNotEmpty()
-  readonly userId: number;
+  readonly description?: string;
 }

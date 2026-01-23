@@ -34,7 +34,21 @@ let UsersService = class UsersService {
         try {
             const user = await this.prisma.user.findFirst({
                 where: { id },
-                select: { id: true, name: true, email: true, Task: true, passwordHash: true },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    Task: {
+                        select: {
+                            id: true,
+                            name: true,
+                            description: true,
+                            completed: true,
+                            createdAt: true,
+                            updatedAt: true,
+                        },
+                    },
+                },
             });
             if (!user) {
                 throw new common_1.HttpException('Usuário não encontrado.', common_1.HttpStatus.NOT_FOUND);
@@ -54,13 +68,12 @@ let UsersService = class UsersService {
                 data: {
                     name: dto.name,
                     email: dto.email,
-                    passwordHash: passwordHash,
+                    passwordHash,
                 },
                 select: { id: true, name: true, email: true },
             });
         }
-        catch (error) {
-            console.error('PRISMA CREATE USER ERROR =>', error);
+        catch {
             throw new common_1.HttpException('Erro ao criar usuário. Verifique os dados enviados.', common_1.HttpStatus.BAD_REQUEST);
         }
     }
@@ -71,12 +84,14 @@ let UsersService = class UsersService {
         if (tokenPayload.sub !== id) {
             throw new common_1.HttpException('Você não tem permissão para atualizar este usuário.', common_1.HttpStatus.FORBIDDEN);
         }
-        await this.findOne(id);
+        const exists = await this.prisma.user.findUnique({ where: { id } });
+        if (!exists) {
+            throw new common_1.HttpException('Usuário não encontrado.', common_1.HttpStatus.NOT_FOUND);
+        }
         try {
             const data = {};
-            if (dto.name !== undefined) {
+            if (dto.name !== undefined)
                 data.name = dto.name;
-            }
             if (dto.password !== undefined) {
                 data.passwordHash = await this.hashingService.hash(dto.password);
             }
@@ -87,7 +102,7 @@ let UsersService = class UsersService {
             });
         }
         catch {
-            throw new common_1.HttpException('Erro ao atualizar usuário. Verifique se o usuário existe.', common_1.HttpStatus.BAD_REQUEST);
+            throw new common_1.HttpException('Erro ao atualizar usuário.', common_1.HttpStatus.BAD_REQUEST);
         }
     }
     async delete(id, tokenPayload) {

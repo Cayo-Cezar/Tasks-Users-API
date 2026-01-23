@@ -1,10 +1,10 @@
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-ser.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { HashingServiceProtocol } from 'src/auth/hash/hashing.service';
 import { PayLoadTokenDto } from 'src/auth/dto/payload-token.dto';
 export declare class UsersService {
-    private prisma;
+    private readonly prisma;
     private readonly hashingService;
     constructor(prisma: PrismaService, hashingService: HashingServiceProtocol);
     getAllUsers(): Promise<{
@@ -18,14 +18,12 @@ export declare class UsersService {
         Task: {
             description: string | null;
             name: string;
-            userId: number | null;
             completed: boolean;
             id: number;
             createdAt: Date;
             updatedAt: Date;
         }[];
         email: string;
-        passwordHash: string;
     }>;
     create(dto: CreateUserDto): Promise<{
         name: string | null;

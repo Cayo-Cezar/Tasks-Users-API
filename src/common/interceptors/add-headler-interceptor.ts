@@ -1,12 +1,10 @@
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
-import { Observable } from "rxjs";
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import { Observable } from 'rxjs';
 
 @Injectable()
-export class AddHeadlerInterceptor implements NestInterceptor {
-  intercept(context: any, next: any): Observable<any> | Promise<Observable<any>> {
-
+export class AddHeaderInterceptor implements NestInterceptor {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const response = context.switchToHttp().getResponse();
-
     response.setHeader('X-Custom', 'valor chave 123');
     return next.handle();
   }

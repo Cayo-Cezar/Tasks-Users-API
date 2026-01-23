@@ -1,14 +1,16 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-ser.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { HashingServiceProtocol } from 'src/auth/hash/hashing.service';
 import { PayLoadTokenDto } from 'src/auth/dto/payload-token.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService,
-    private readonly hashingService: HashingServiceProtocol
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly hashingService: HashingServiceProtocol,
   ) { }
 
   async getAllUsers() {
@@ -28,14 +30,26 @@ export class UsersService {
     try {
       const user = await this.prisma.user.findFirst({
         where: { id },
-        select: { id: true, name: true, email: true, Task: true, passwordHash: true },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          // Se quiser listar tasks, melhor selecionar campos seguros:
+          Task: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              completed: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+        },
       });
 
       if (!user) {
-        throw new HttpException(
-          'Usuário não encontrado.',
-          HttpStatus.NOT_FOUND,
-        );
+        throw new HttpException('Usuário não encontrado.', HttpStatus.NOT_FOUND);
       }
 
       return user;
@@ -52,23 +66,22 @@ export class UsersService {
   async create(dto: CreateUserDto) {
     try {
       const passwordHash = await this.hashingService.hash(dto.password);
+
       return await this.prisma.user.create({
         data: {
           name: dto.name,
           email: dto.email,
-          passwordHash: passwordHash,
+          passwordHash,
         },
         select: { id: true, name: true, email: true },
       });
-    } catch (error) {
-      console.error('PRISMA CREATE USER ERROR =>', error);
+    } catch {
       throw new HttpException(
         'Erro ao criar usuário. Verifique os dados enviados.',
         HttpStatus.BAD_REQUEST,
       );
     }
   }
-
 
   async update(id: number, dto: UpdateUserDto, tokenPayload: PayLoadTokenDto) {
     if (dto.name === undefined && dto.password === undefined) {
@@ -78,7 +91,6 @@ export class UsersService {
       );
     }
 
-    // Permissão: só o próprio usuário (sub) pode atualizar seu registro
     if (tokenPayload.sub !== id) {
       throw new HttpException(
         'Você não tem permissão para atualizar este usuário.',
@@ -86,16 +98,16 @@ export class UsersService {
       );
     }
 
-    // (Opcional, mas mantém seu padrão) garante 404 se não existir
-    await this.findOne(id);
+    // garante 404 se não existir
+    const exists = await this.prisma.user.findUnique({ where: { id } });
+    if (!exists) {
+      throw new HttpException('Usuário não encontrado.', HttpStatus.NOT_FOUND);
+    }
 
     try {
-      const data: any = {};
+      const data: Record<string, any> = {};
 
-      if (dto.name !== undefined) {
-        data.name = dto.name;
-      }
-
+      if (dto.name !== undefined) data.name = dto.name;
       if (dto.password !== undefined) {
         data.passwordHash = await this.hashingService.hash(dto.password);
       }
@@ -107,12 +119,11 @@ export class UsersService {
       });
     } catch {
       throw new HttpException(
-        'Erro ao atualizar usuário. Verifique se o usuário existe.',
+        'Erro ao atualizar usuário.',
         HttpStatus.BAD_REQUEST,
       );
     }
   }
-
 
   async delete(id: number, tokenPayload: PayLoadTokenDto) {
     if (tokenPayload.sub !== id) {

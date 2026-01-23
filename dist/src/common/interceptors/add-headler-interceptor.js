@@ -6,17 +6,17 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AddHeadlerInterceptor = void 0;
+exports.AddHeaderInterceptor = void 0;
 const common_1 = require("@nestjs/common");
-let AddHeadlerInterceptor = class AddHeadlerInterceptor {
+let AddHeaderInterceptor = class AddHeaderInterceptor {
     intercept(context, next) {
         const response = context.switchToHttp().getResponse();
         response.setHeader('X-Custom', 'valor chave 123');
         return next.handle();
     }
 };
-exports.AddHeadlerInterceptor = AddHeadlerInterceptor;
-exports.AddHeadlerInterceptor = AddHeadlerInterceptor = __decorate([
+exports.AddHeaderInterceptor = AddHeaderInterceptor;
+exports.AddHeaderInterceptor = AddHeaderInterceptor = __decorate([
     (0, common_1.Injectable)()
-], AddHeadlerInterceptor);
+], AddHeaderInterceptor);
 //# sourceMappingURL=add-headler-interceptor.js.map
